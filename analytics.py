@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import networkx as nx
+from collections import defaultdict
 from datetime import datetime as dt
 
 """
@@ -77,9 +78,6 @@ def bursty_cascades(times, dt=30):
         e_dist = [1]
 
 
-def centralities(net):
-    pass
-
 def ego_reciprocity(in_set, out_set):
     """
     Returns statistics regarding the reciprocity of an ego network
@@ -103,6 +101,9 @@ def ego_reciprocity(in_set, out_set):
     return stats
 
 
-def _get_stat(stats, key):
+def get_stat(stats, key):
     # Obtain out_w or that data from ego_reciprocity as a list
     return [v[key] for v in stats.values()]
+
+
+
