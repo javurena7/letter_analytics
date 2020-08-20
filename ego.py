@@ -1,18 +1,19 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt; plt.ion()
+import matplotlib.pyplot as plt
 from scipy.stats import entropy
 from collections import OrderedDict, defaultdict, Counter
 from analytics import str_to_timestamp, timestamp_to_date, ego_reciprocity
 
 
-# TODO: remove this from here, read data from a
-logs = '../rrltograph/csv/edges_test.csv'
-
-
 class EgoAnalytics(object):
     """
-    Main view for ego networks. Obtains timelines, and interacts with social signature
+    Main view for ego networks. Obtains timelines, and interacts with social signature.
+    Either query or ego networks must provided
+    Inputs -
+    node - str for node name
+    egos - dict containing 'out_ego' and 'in_ego' dicts, where the keys are nodes and the values are lists with timestamps ()
+    query - sparql query resuts that includes incoming and outgoing letters to 'node', including timestamps
     """
     def __init__(self, node, egos={}, query=''):
         self.node = node
@@ -49,9 +50,11 @@ class EgoAnalytics(object):
                 'in_ego': in_times}
         return egos
 
+
     def timeline(self, ego):
         ts = sorted([date for node in ego.values() for date in node])
         return ts
+
 
     def plot_timelines(self):
         out_ts = self.timeline(self.out_ego)
@@ -63,9 +66,6 @@ class EgoAnalytics(object):
         ax.legend(loc=0)
         return fig, ax
 
-    def dynamic_attractiveness(self, bin_type):
-        pass
-
 
     def _basic_timeline_plot(self, ts, ax, col, label):
         y_ts = [timestamp_to_date(t).year for t in ts]
@@ -74,13 +74,25 @@ class EgoAnalytics(object):
         vals = [y_c[y] for y in years]
         ax.plot(years, vals, c=col, label=label)
 
+
     def social_signature(self, bin_type='year', bin_n=5, max_rank=20):
         #TODO: correct this so that dynamic ego doenst need 'egos'
         egos = {'out_ego': self.out_ego}
         ss = SocialSignature(self.node, egos, bin_type, bin_n, max_rank)
         self.ss = ss
 
+
+    def dynamic_attractiveness(self, bin_type='year', bin_n=5):
+        #TODO: correct this so that dynamic ego doenst need 'egos', but we can pass only one
+        egos = {'out_ego': self.out_ego, 'in_ego': self.in_ego}
+        da = DynamicAttv(self.node, egos, bin_type, bin_n)
+        self.da = da
+
+
 class DynamicEgo(object):
+    """
+    Basic class for dynamic ego data. Basis for SocialSingature and DynamicAttrv
+    """
     def __init__(self, node, egos, bin_type='linear', bin_n=3, kind='out'):
         self.node = node
         self.bin_type = bin_type
@@ -119,6 +131,8 @@ class DynamicEgo(object):
         elif bin_type == 'year':
             bin_size = 365.25 *  bin_n
             self.edges = np.arange(int(s_times[0]-1), int(s_times[-1]) + bin_size, bin_size)
+        else:
+            raise TypeError("'bin_type' must be either 'linear', 'distribution' or 'year'")
 
     def jaccard_similarity(self, sa, sb):
         if (len(sa) == 0) or (len(sb) == 0):
@@ -130,6 +144,18 @@ class DynamicEgo(object):
         except ZeroDivisionError:
             sab = 0
         return sab
+
+
+    def get_year_edges(self):
+        """
+        Return bin edges in years
+        """
+        y_edges = []
+        for edge in self.edges:
+            year = timestamp_to_date(int(edge)).year
+            y_edges.append(year)
+
+        return y_edges
 
 
 class SocialSignature(DynamicEgo):
@@ -339,7 +365,6 @@ class DynamicAttv(DynamicEgo):
 
     def plot(self):
         fig, axs = plt.subplots(3, 1, sharex=True)
-        import pdb; pdb.set_trace()
         out_w = self._parse_stat('out_w')
         att_b = self._parse_stat('att_b')
         bal = self._parse_stat('bal')
@@ -357,7 +382,6 @@ class DynamicAttv(DynamicEgo):
 
     def _basic_plot(self, ax, ax_key, data):
         ax.plot(self.edges[1:], data, label=ax_key)
-
 
 
 

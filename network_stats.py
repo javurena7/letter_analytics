@@ -12,8 +12,7 @@ class NetAnalytics(object):
 
     def net_attractiveness(self):
         """
-        Obtain measures of network attractiveness from Wang 2016. 
-        
+        Obtain measures of network attractiveness from Wang 2016.
         Returns:
         stats: dictionary where keys are node ids, values are dicts
         """
@@ -26,7 +25,10 @@ class NetAnalytics(object):
 
         return stats
 
-
-    def percolation(self, p_list):
+    def iet_distribution(self, times):
+        """
+        Return the Inter-Event Time distribution for ties in the network
+        Input:
+        """
         pass
 
