@@ -159,7 +159,7 @@ class DynamicEgo(object):
 
 
 class SocialSignature(DynamicEgo):
-    def __init__(self, node, egos, bin_type='linear', bin_n=3, max_rank=20):
+    def __init__(self, node, egos, bin_type='linear', bin_n=3, max_rank=20, ns=True):
         """
         node: focus node
         ego_times: dict of outgoing letters
@@ -171,7 +171,8 @@ class SocialSignature(DynamicEgo):
         self.max_rank = max_rank
         self._get_signatures()
         self.get_avg_signature()
-        self.get_neighbor_similarity()
+        if ns:
+            self.get_neighbor_similarity()
 
 
     def update(self, bin_type, bin_n, sim=True, avg=True):
