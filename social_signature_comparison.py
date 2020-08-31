@@ -2,7 +2,7 @@ from ego import *
 
 
 class CompareSignatureNew(SocialSignature):
-    def __init__(self, node, egos, min_neigh, min_bins, bin_type='linear', bin_n=3, max_rank=20):
+    def __init__(self, node, egos, min_neigh, min_bins=3, bin_type='linear', bin_n=3, max_rank=20):
         """
         min_bins: minimium number of consecutive bins necessary to be a valid ego
         min_neigh: minimum number of out-neigbors in a bin to be a valid ego
@@ -12,7 +12,7 @@ class CompareSignatureNew(SocialSignature):
         self.min_bins = min_bins
         self.valid_sign = None
         self._check_validity()
-        self.d_ref {}
+        self.d_ref = {}
 
 
     def _check_validity(self):
@@ -25,17 +25,17 @@ class CompareSignatureNew(SocialSignature):
         if cnt_n < 0:
             self.valid = False
         else:
-            y = [np.all(cnt[i:(i + self.min_bins)] > self.min_neigh) for i in range(cnt_n)]
+            y = [np.all(cnt[i:(i + self.min_bins)] >= self.min_neigh) for i in range(cnt_n)]
             if sum(y) <= 0:
                 self.valid = False
             elif sum(y) == 1:
                 self.valid = True
-                idx, _ = np.where(y)
+                idx = np.where(y)[0][0]
             else:
                 # If many sequences are valid, select the one with the most letters
                 self.valid = True
-                w = [self.w_signatures[i] for i in range(len(self.w_signatures))]
-                w = [sum(w[i:(i + self.min_bins)]) for i in range(cnt_n) if y[i] else 0]
+                w_list = [self.w_signatures[i] for i in range(len(self.w_signatures))]
+                w = [sum(w_list[i:(i + self.min_bins)]) if y[i] else 0 for i in range(cnt_n)]
                 idx = np.argmax(w)
         self._valid_idx = idx
 
@@ -51,14 +51,19 @@ class CompareSignatureNew(SocialSignature):
 
     def get_valid_sign(self):
         sign = [self.t_signatures[i] for i in range(self._valid_idx, self._valid_idx + self.min_bins)]
+        #edges = self.get_year_edges()[self._valid_idx: self._valid_idx + self.min_bins + 1]
+        #self.valid_edges = edges
         self.valid_sign = sign
         return sign
 
 
     def get_d_self(self):
+        """
+        Compute self distance between time intervals
+        """
         d_t = []
         for s0, s1 in zip(self.valid_sign[:-1], self.valid_sign[1:]):
-            d_t.append(self.jsd(s0, s1))
+            d_t.append(self.js(s0, s1))
         self.d_self = d_t
         self.d_self_avg = np.mean(d_t)
 
@@ -70,13 +75,18 @@ class CompareSignatureNew(SocialSignature):
     def get_d_ref(self, node, valid_signs):
         d_t = []
         for s0, s1 in zip(self.valid_signs, valid_signs):
-            d_t.append(self.jsd(s0, s1))
+            d_t.append(self.js(s0, s1))
         self.d_ref[node] = (np.mean(d_t), d_t)
         return self.d_ref[node]
 
 
-
-    def update_compare(self, min_neigh, min_bins):
+    def update_compare(self, min_neigh, min_bins, bin_type=None, bin_n=None):
+        """
+        Update number of min neighs and min bins
+        New binning only created if both bin_type and bin_n are provided
+        """
+        if bin_type is not None and bin_n is not None:
+            self.update(bin_type, bin_n)
         self.min_neigh = min_neigh
         self.min_bins
         self._check_validity()
@@ -84,7 +94,6 @@ class CompareSignatureNew(SocialSignature):
 
 
 class CompareSignatures(object):
-
     def __init__(self, nodes=None, min_deg=15, max_rank=20, result_path='signature/', data_path='1500_1990/30/'):
 
         self.min_deg = min_deg

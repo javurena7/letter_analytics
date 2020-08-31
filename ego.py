@@ -76,9 +76,7 @@ class EgoAnalytics(object):
 
 
     def social_signature(self, bin_type='year', bin_n=5, max_rank=20):
-        #TODO: correct this so that dynamic ego doenst need 'egos'
-        egos = {'out_ego': self.out_ego}
-        ss = SocialSignature(self.node, egos, bin_type, bin_n, max_rank)
+        ss = SocialSignature(self.node, self.out_ego, bin_type, bin_n, max_rank)
         self.ss = ss
 
 
@@ -106,9 +104,9 @@ class DynamicEgo(object):
 
     def _get_times(self, egos, kind):
         if kind == 'out':
-            self.times = egos['out_ego']
+            self.times = egos #egos['out_ego']
         elif kind == 'in':
-            self.times = egos['in_ego']
+            self.times = egos #egos['in_ego']
         elif kind == 'all':
             times = {k: egos['in_ego'].get(k, []) + egos['out_ego'].get(k, []) for \
                     k in set(egos['in_ego']) | set(egos['out_ego'])}
