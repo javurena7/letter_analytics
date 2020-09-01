@@ -4,6 +4,8 @@ sys.path.append('..')
 import social_signature_comparison as ssc
 from analytics import str_to_timestamp
 from pandas import DataFrame
+from collections import defaultdict
+import matplotlib.pyplot as plt; plt.ion()
 
 csv_path = "/home/javier/Documents/aalto/phd/republic_letters/rrltograph/csv/edges_test.csv"
 
@@ -93,15 +95,49 @@ def compare_valid_signatures(min_neigh, bin_n, out_egos, valid_nodes_dict, min_b
         soc_signs_self.append(s.d_self_avg)
     soc_signs_ref = []
     for i in range(len(soc_signs)):
-        for j in range(i+1, len(out_egos)):
+        for j in range(i+1, len(soc_signs)):
             alt_soc = soc_signs[j]
-            d_ref = soc_signs[i].get_d_ref(alt_soc.node, alt_soc.d_self)
+            d_ref = soc_signs[i].get_d_ref(alt_soc.node, alt_soc.valid_sign)
             soc_signs_ref.append(d_ref[0])
     return soc_signs_self, soc_signs_ref
 
+def plot_soc_sign_hist(ss_self, ss_ref, ax, xlabel, ylabel, labels=True):
+
+    ax.hist(ss_self, bins=20, alpha=.6, density=True, label=r'$d_{self}$')
+    ax.hist(ss_ref, bins=20, alpha=.6, density=True, label=r'$d_{ref}$')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if labels:
+        ax.legend(loc=0, fontsize='x-small')
+#    ax.set_title(title)
 
 
+def plot_all_signatures(min_neigh_r, bin_n_r, out_egos, min_bin=3, bin_type='year', savename=''):
+
+    n_vals, valid_nodes = valid_signature_ranges(min_neigh_r, bin_n_r,\
+            out_egos, min_bin, bin_type)
+    fig, axs = plt.subplots(*n_vals.shape, sharex=True, sharey=True)
+    i, j = 0, 0
+    for bin_n in bin_n_r:
+        print(j)
+        for min_neigh in min_neigh_r:
+            ss_self, ss_ref = compare_valid_signatures(min_neigh, bin_n, out_egos, valid_nodes, min_bin, bin_type)
+            #title = 'min_neigh = {}\n bin_n = {}'.format(min_neigh, bin_n)
+            ylabel = 'min neigh=\n{}'.format(min_neigh) if j == 0 else ''
+            xlabel = 'bin size={}'.format(bin_n) if (i == n_vals.shape[0] - 1) else ''
+            labels = True if (i + j == 0) else False
+            plot_soc_sign_hist(ss_self, ss_ref, axs[i,j], xlabel=xlabel, ylabel=ylabel, labels=labels)
+            i += 1
+        j += 1
+        i = 0
+    #fig.tight_layout()
+    fig.savefig(savename)
+    return fig, axs
 
 
-
+if __name__ == "__main__":
+    min_neigh_r = [5, 7, 10, 15]
+    bin_n_r = [1, 3, 5, 10]
+    out_egos = out_egos_from_logs(csv_path)
+    plot_all_signatures(min_neigh_r, bin_n_r, out_egos, savename='signature_comp_ranges.pdf')
 

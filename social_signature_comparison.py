@@ -63,7 +63,9 @@ class CompareSignatureNew(SocialSignature):
         """
         d_t = []
         for s0, s1 in zip(self.valid_sign[:-1], self.valid_sign[1:]):
-            d_t.append(self.js(s0, s1))
+            p = [s for s in s0.values()]
+            q = [s for s in s1.values()]
+            d_t.append(self.js(p, q))
         self.d_self = d_t
         self.d_self_avg = np.mean(d_t)
 
@@ -74,8 +76,10 @@ class CompareSignatureNew(SocialSignature):
 
     def get_d_ref(self, node, valid_signs):
         d_t = []
-        for s0, s1 in zip(self.valid_signs, valid_signs):
-            d_t.append(self.js(s0, s1))
+        for s0, s1 in zip(self.valid_sign, valid_signs):
+            p = [s for s in s0.values()]
+            q = [s for s in s1.values()]
+            d_t.append(self.js(p, q))
         self.d_ref[node] = (np.mean(d_t), d_t)
         return self.d_ref[node]
 
