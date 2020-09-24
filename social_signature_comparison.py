@@ -96,7 +96,6 @@ class CompareSignatureNew(SocialSignature):
         self._check_validity()
 
 
-
 class CompareSignatures(object):
     def __init__(self, nodes=None, min_deg=15, max_rank=20, result_path='signature/', data_path='1500_1990/30/'):
 

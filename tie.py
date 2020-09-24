@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt; plt.ion()
 
 
 class TieAnalytics(object):
-    def __init__(self, nodes, times=None, query=''):
+    def __init__(self, nodes, times=None, query='', graph):
         """
         times - dict with
         """
@@ -16,10 +16,11 @@ class TieAnalytics(object):
             self.times = times
         self.stats = {}
 
+    def _get_active_times(self):
+        pass
 
 
     def _query_to_times(self, query):
-
         pass
 
 

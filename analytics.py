@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 from collections import defaultdict
-from datetime import datetime as dt
+import datetime as dt
 
 """
 Common use functions for serveral views
@@ -13,12 +13,15 @@ def str_to_timestamp(dstr):
     Function to convert string of format 'Y-m-d' into timestamp (ordinal number of
     days since 01.01.0001)
     """
-
+    dstr = dstr[:10]
     try:
-        d = dt.strptime(dstr[:10], "%Y-%m-%d")
+        d = dt.datetime.strptime(dstr, "%Y-%m-%d")
     except:
         dstr = dstr.split('-')
-        d = dt.datetime(int(dstr[0]), int(dstr[1]), int(dstr[2]) - 1)
+        try:
+            d = dt.datetime(int(dstr[0]), int(dstr[1]), int(dstr[2]))
+        except ValueError:
+            d = dt.datetime(int(dstr[0]), int(dstr[1]), 28)
     a = d.toordinal()
     return a
 

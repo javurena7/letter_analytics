@@ -66,7 +66,7 @@ def net_overlap(net, output_path=None, alt_net_path=None):
                 e0, e1 = np.sort([int(e0), int(e1)])
                 try:
                      ov = round(netanalysis.overlap(net, e0, e1), 4)
-		except:
+                except:
                      ov = 0.0
                 line = [str(e0), str(e1), str(ov)]
                 f.write(' '.join(line) + "\n")
